@@ -19,6 +19,7 @@ function App() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [authMode, setAuthMode] = useState(null) // 'login', 'register', or null
+  const [showPoll, setShowPoll] = useState(false) // Control poll visibility via Vote button
 
   useEffect(() => {
     const fetchData = async () => {
@@ -87,6 +88,18 @@ function App() {
     setAuthMode(null)
   }
 
+  const handleVoteClick = () => {
+    if (!currentUser) {
+      // If not logged in, show register modal
+      setAuthMode('register')
+      sessionStorage.setItem('fromRegisterToVote', 'true')
+      // After they register and log in, the poll will show automatically
+    } else {
+      // If logged in, show the poll
+      setShowPoll(true)
+    }
+  }
+
   return (
     <>
       {authMode && (
@@ -101,6 +114,9 @@ function App() {
       )}
       {!currentUser && (
         <div className="fixed-auth-buttons">
+          <button onClick={handleVoteClick} className="vote-button">
+            Vote
+          </button>
           <button onClick={handleRegisterClick} className="register-vote-button">
             Register to Vote
           </button>
@@ -108,11 +124,14 @@ function App() {
       )}
       {currentUser && (
         <div className="fixed-user-info">
+          <button onClick={handleVoteClick} className="vote-button">
+            Vote
+          </button>
           <span className="user-email">Registered: {currentUser.email}</span>
           <button onClick={handleLogout} className="logout-button">Sign Out</button>
         </div>
       )}
-      <Poll />
+      <Poll showPoll={showPoll} onClosePoll={() => setShowPoll(false)} />
       <div className="app">
         <header className="app-header">
           <div className="header-top">
@@ -148,6 +167,8 @@ function App() {
           </div>
         </header>
 
+        <VoteButton />
+
         <section className="statement-section">
           <h2 className="statement-title">Statement of Intent</h2>
           <div className="statement-content">
@@ -178,8 +199,6 @@ function App() {
             </div>
           </div>
         </section>
-
-        <VoteButton />
 
         <main className="charts-grid">
           <div className="chart-wrapper">

@@ -98,13 +98,23 @@ export default function Register({ onToggleMode }) {
             />
           </div>
           
-          <button 
-            type="submit" 
-            className="auth-button"
-            disabled={loading}
-          >
-            {loading ? 'Registering...' : 'Register to Vote'}
-          </button>
+          <div className="auth-buttons-container">
+            <button 
+              type="submit" 
+              className="auth-button"
+              disabled={loading}
+            >
+              {loading ? 'Registering...' : 'Register to Vote'}
+            </button>
+            <button 
+              type="button" 
+              className="auth-button auth-button-secondary"
+              onClick={onToggleMode}
+              disabled={loading}
+            >
+              Sign In
+            </button>
+          </div>
         </form>
         
       </div>

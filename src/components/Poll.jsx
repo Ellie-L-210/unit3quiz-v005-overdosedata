@@ -3,7 +3,7 @@ import { useAuth } from '../contexts/AuthContext'
 import { hasUserVoted, submitPollVote } from '../utils/votingService'
 import './Poll.css'
 
-export default function Poll() {
+export default function Poll({ showPoll = false, onClosePoll }) {
   const { currentUser } = useAuth()
   const [hasVoted, setHasVoted] = useState(false)
   const [loading, setLoading] = useState(true)
@@ -27,10 +27,10 @@ export default function Poll() {
           const voted = await hasUserVoted(currentUser.uid)
           setHasVoted(voted)
           
-          // Only show poll if:
-          // 1. User came from "Register to Vote" button
-          // 2. User has not voted before
-          setShouldShowPoll(fromRegisterToVote && !voted)
+          // Show poll if:
+          // 1. User came from "Register to Vote" button AND hasn't voted, OR
+          // 2. Vote button was clicked (showPoll prop is true)
+          setShouldShowPoll((fromRegisterToVote && !voted) || showPoll)
         } catch (err) {
           console.error('Error checking voting status:', err)
         } finally {
@@ -38,11 +38,12 @@ export default function Poll() {
         }
       } else {
         setLoading(false)
-        setShouldShowPoll(false)
+        // Show poll if Vote button was clicked (even if not logged in, they'll see it after login)
+        setShouldShowPoll(showPoll)
       }
     }
     checkVotingStatus()
-  }, [currentUser])
+  }, [currentUser, showPoll])
 
   const handleVote = async (answer) => {
     if (!currentUser || submitting) return
@@ -59,6 +60,10 @@ export default function Poll() {
         setJustVoted(true)
         // Clear the flag after voting
         sessionStorage.removeItem('fromRegisterToVote')
+        // Close poll if opened via Vote button
+        if (onClosePoll) {
+          setTimeout(() => onClosePoll(), 0)
+        }
       } else {
         setError(result.message)
       }
@@ -88,6 +93,29 @@ export default function Poll() {
             <button 
               onClick={() => {
                 setJustVoted(false)
+                if (onClosePoll) onClosePoll()
+              }}
+              className="poll-close-button"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // If user has already voted and poll is shown via Vote button, show thank you message
+  if (showPoll && currentUser && hasVoted && !justVoted) {
+    return (
+      <div className="poll-overlay">
+        <div className="poll-container">
+          <div className="poll-card poll-thank-you">
+            <h2 className="poll-title">🦆 Thank you for voting!</h2>
+            <p className="poll-thank-you-message">Your vote has been recorded.</p>
+            <button 
+              onClick={() => {
+                if (onClosePoll) onClosePoll()
               }}
               className="poll-close-button"
             >
@@ -100,7 +128,7 @@ export default function Poll() {
   }
 
   // If user came from "Register to Vote", is logged in, and has already voted (but didn't just vote), show thank you message
-  if (fromRegisterToVote && currentUser && hasVoted && !justVoted) {
+  if (fromRegisterToVote && currentUser && hasVoted && !justVoted && !showPoll) {
     return (
       <div className="poll-overlay">
         <div className="poll-container">
@@ -121,8 +149,15 @@ export default function Poll() {
     )
   }
 
-  // Only show poll if user came from "Register to Vote" and hasn't voted
-  if (!shouldShowPoll || hasVoted) {
+  // Show poll if:
+  // 1. User came from "Register to Vote" and hasn't voted, OR
+  // 2. Vote button was clicked (showPoll is true) and user hasn't voted
+  if (!shouldShowPoll || (hasVoted && !showPoll)) {
+    return null
+  }
+
+  // If user is not logged in and Vote button was clicked, don't show poll yet
+  if (showPoll && !currentUser) {
     return null
   }
 
@@ -153,6 +188,17 @@ export default function Poll() {
           </div>
           
           <p className="poll-note">Your vote will be recorded and cannot be changed.</p>
+          {showPoll && (
+            <button 
+              onClick={() => {
+                if (onClosePoll) onClosePoll()
+              }}
+              className="poll-close-button"
+              style={{ marginTop: '1rem', background: '#64748b' }}
+            >
+              Cancel
+            </button>
+          )}
         </div>
       </div>
     </div>
