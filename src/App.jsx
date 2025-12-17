@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import './App.css'
 import { useAuth } from './contexts/AuthContext'
 import { loadCSVData } from './utils/dataLoader'
@@ -11,7 +11,6 @@ import YearlyComparison from './components/YearlyComparison'
 import MonthlyTrends from './components/MonthlyTrends'
 import SalesDistribution from './components/SalesDistribution'
 import CategoryMonthlyView from './components/CategoryMonthlyView'
-import VoteButton from './components/VoteButton'
 
 function App() {
   const { currentUser, logout } = useAuth()
@@ -80,6 +79,10 @@ function App() {
     setAuthMode('register')
   }
 
+  const handleSignInClick = () => {
+    setAuthMode('login')
+  }
+
   const handleCloseModal = () => {
     // Clear flag if user closes modal without registering
     if (authMode === 'register') {
@@ -100,6 +103,15 @@ function App() {
     }
   }
 
+  // Memoize expensive calculations
+  const totalRetailSales = useMemo(() =>
+    data.reduce((sum, row) => sum + (row['RETAIL SALES'] || 0), 0).toLocaleString('en-US', { maximumFractionDigits: 2 })
+    , [data])
+
+  const totalWarehouseSales = useMemo(() =>
+    data.reduce((sum, row) => sum + (row['WAREHOUSE SALES'] || 0), 0).toLocaleString('en-US', { maximumFractionDigits: 2 })
+    , [data])
+
   return (
     <>
       {authMode && (
@@ -107,15 +119,18 @@ function App() {
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <button className="modal-close" onClick={handleCloseModal}>×</button>
             {authMode === 'register' && (
-              <Register onToggleMode={() => { }} />
+              <Register onToggleMode={() => setAuthMode('login')} />
+            )}
+            {authMode === 'login' && (
+              <Login onToggleMode={() => setAuthMode('register')} />
             )}
           </div>
         </div>
       )}
       {!currentUser && (
         <div className="fixed-auth-buttons">
-          <button onClick={handleVoteClick} className="vote-button">
-            Vote
+          <button onClick={handleSignInClick} className="register-vote-button">
+            Sign In
           </button>
           <button onClick={handleRegisterClick} className="register-vote-button">
             Register to Vote
@@ -124,9 +139,6 @@ function App() {
       )}
       {currentUser && (
         <div className="fixed-user-info">
-          <button onClick={handleVoteClick} className="vote-button">
-            Vote
-          </button>
           <span className="user-email">Registered: {currentUser.email}</span>
           <button onClick={handleLogout} className="logout-button">Sign Out</button>
         </div>
@@ -154,20 +166,20 @@ function App() {
             </div>
             <div className="stat-item">
               <span className="stat-label">Total Retail Sales:</span>
-              <span className="stat-value">
-                ${data.reduce((sum, row) => sum + (row['RETAIL SALES'] || 0), 0).toLocaleString('en-US', { maximumFractionDigits: 2 })}
-              </span>
+              <span className="stat-value">${totalRetailSales}</span>
             </div>
             <div className="stat-item">
               <span className="stat-label">Total Warehouse Sales:</span>
-              <span className="stat-value">
-                ${data.reduce((sum, row) => sum + (row['WAREHOUSE SALES'] || 0), 0).toLocaleString('en-US', { maximumFractionDigits: 2 })}
-              </span>
+              <span className="stat-value">${totalWarehouseSales}</span>
             </div>
           </div>
         </header>
 
-        <VoteButton />
+        <div className="vote-button-container">
+          <button onClick={handleVoteClick} className="vote-button vote-button-large">
+            Vote
+          </button>
+        </div>
 
         <section className="statement-section">
           <h2 className="statement-title">Statement of Intent</h2>

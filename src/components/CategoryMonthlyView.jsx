@@ -1,7 +1,7 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, memo } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
-export default function CategoryMonthlyView({ data }) {
+function CategoryMonthlyView({ data }) {
     const [selectedCategory, setSelectedCategory] = useState('');
 
     // Get all unique categories
@@ -122,4 +122,6 @@ export default function CategoryMonthlyView({ data }) {
         </div>
     );
 }
+
+export default memo(CategoryMonthlyView);
 

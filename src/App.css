@@ -463,6 +463,20 @@
   grid-column: 1 / -1;
 }
 
+.vote-button-container {
+  display: flex;
+  justify-content: center;
+  margin: 2rem auto;
+  max-width: 1200px;
+}
+
+.vote-button-large {
+  padding: 1rem 3rem;
+  font-size: 1.125rem;
+  font-weight: 600;
+  min-width: 200px;
+}
+
 .chart-container {
   width: 100%;
 }
@@ -527,6 +541,16 @@
   height: 400px;
   color: #666;
   font-size: 1.1rem;
+}
+
+.chart-loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 400px;
+  color: var(--text-secondary);
+  font-size: 1rem;
+  font-weight: 500;
 }
 
 .loading-container,

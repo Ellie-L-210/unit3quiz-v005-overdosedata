@@ -1,7 +1,7 @@
-import { useMemo } from 'react';
+import { useMemo, memo } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
-export default function MonthlyTrends({ data }) {
+function MonthlyTrends({ data }) {
     const chartData = useMemo(() => {
         const monthlyData = {};
 
@@ -64,4 +64,6 @@ export default function MonthlyTrends({ data }) {
         </div>
     );
 }
+
+export default memo(MonthlyTrends);
 
