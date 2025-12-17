@@ -16,6 +16,9 @@ export default function Login({ onToggleMode }) {
       setError('')
       setLoading(true)
       await login(email, password)
+      // Clear the flag if user signs in (not registers)
+      // Poll should only show for new registrations via "Register to Vote"
+      sessionStorage.removeItem('fromRegisterToVote')
     } catch (err) {
       setError(err.message || 'Failed to sign in')
     } finally {
