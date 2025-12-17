@@ -10,6 +10,61 @@
   margin-bottom: 3rem;
 }
 
+.header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.user-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.5rem;
+}
+
+.user-email {
+  font-size: 0.9rem;
+  opacity: 0.9;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10px);
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.logout-button {
+  padding: 0.5rem 1.5rem;
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(10px);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.logout-button:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: translateY(-2px);
+}
+
+.registered-badge {
+  background: rgba(76, 175, 80, 0.3) !important;
+  border-color: rgba(76, 175, 80, 0.5) !important;
+}
+
+.registered-badge .stat-label {
+  color: #4caf50;
+  font-weight: 700;
+  font-size: 1rem;
+}
+
 .app-header h1 {
   font-size: 2.5rem;
   margin-bottom: 0.5rem;
@@ -28,6 +83,70 @@
   gap: 2rem;
   flex-wrap: wrap;
   margin-top: 2rem;
+}
+
+.statement-section {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 16px;
+  padding: 2.5rem;
+  margin: 2rem auto;
+  max-width: 1200px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+.statement-title {
+  color: #333;
+  font-size: 2rem;
+  text-align: center;
+  margin-bottom: 1.5rem;
+  border-bottom: 3px solid #7C3AED;
+  padding-bottom: 1rem;
+}
+
+.statement-content {
+  color: #444;
+  line-height: 1.8;
+}
+
+.candidate-name {
+  text-align: center;
+  font-size: 1.1rem;
+  color: #7C3AED;
+  font-weight: 600;
+  margin-bottom: 2rem;
+  font-style: italic;
+}
+
+.statement-text {
+  font-size: 1.05rem;
+}
+
+.statement-text p {
+  margin-bottom: 1.2rem;
+  text-align: justify;
+}
+
+.statement-text p strong {
+  color: #7C3AED;
+  font-weight: 700;
+}
+
+.statement-signature {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 2px solid #e0e0e0;
+  text-align: right;
+  font-size: 1rem;
+}
+
+.statement-signature em {
+  color: #666;
+  font-style: italic;
+}
+
+.statement-signature strong {
+  color: #333;
+  font-size: 1.1rem;
 }
 
 .stat-item {
@@ -183,6 +302,16 @@
 
   .app-header h1 {
     font-size: 2rem;
+  }
+
+  .header-top {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .user-info {
+    align-items: center;
+    width: 100%;
   }
 
   .stats-bar {
