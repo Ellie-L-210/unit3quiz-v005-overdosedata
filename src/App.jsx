@@ -6,6 +6,7 @@ import SalesByItemType from './components/SalesByItemType'
 import YearlyComparison from './components/YearlyComparison'
 import MonthlyTrends from './components/MonthlyTrends'
 import SalesDistribution from './components/SalesDistribution'
+import CategoryMonthlyView from './components/CategoryMonthlyView'
 
 function App() {
   const [data, setData] = useState([])
@@ -89,6 +90,9 @@ function App() {
         </div>
         <div className="chart-wrapper">
           <SalesDistribution data={data} />
+        </div>
+        <div className="chart-wrapper chart-wrapper-full">
+          <CategoryMonthlyView data={data} />
         </div>
       </main>
     </div>
