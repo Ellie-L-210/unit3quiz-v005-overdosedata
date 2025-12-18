@@ -1,7 +1,7 @@
-import { useMemo, memo } from 'react';
+import { useMemo } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
-function SalesOverTime({ data }) {
+export default function SalesOverTime({ data }) {
     const chartData = useMemo(() => {
         const monthlyData = {};
 
@@ -67,6 +67,4 @@ function SalesOverTime({ data }) {
         </div>
     );
 }
-
-export default memo(SalesOverTime);
 

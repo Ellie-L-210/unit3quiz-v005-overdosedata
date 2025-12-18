@@ -26,8 +26,6 @@ export default function Register({ onToggleMode }) {
       setError('')
       setLoading(true)
       await register(email, password)
-      // Keep the flag to indicate user came from "Register to Vote"
-      sessionStorage.setItem('fromRegisterToVote', 'true')
       setSuccess(true)
       // Success message will be shown, and user will be automatically logged in
     } catch (err) {

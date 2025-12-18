@@ -3,8 +3,8 @@ import { useAuth } from '../contexts/AuthContext'
 import { hasUserVoted, submitVote, getVoteCount } from '../utils/votingService'
 import './VoteButton.css'
 
-export default function VoteButton() {
-  const { currentUser } = useAuth()
+export default function VoteButton({ onVoteClick }) {
+  const { currentUser, logout } = useAuth()
   const [hasVoted, setHasVoted] = useState(false)
   const [isChecking, setIsChecking] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -83,11 +83,37 @@ export default function VoteButton() {
     )
   }
 
+  const handleLogout = async () => {
+    try {
+      await logout()
+    } catch (err) {
+      console.error('Failed to logout:', err)
+    }
+  }
+
   return (
     <div className="vote-section">
       <div className="vote-container">
         <h3 className="vote-title">Cast Your Vote</h3>
         <p className="vote-subtitle">Support Senator Reginald P. Bottleworth III</p>
+        
+        {currentUser && (
+          <div className="vote-user-info">
+            <button 
+              onClick={onVoteClick} 
+              className="vote-register-button"
+            >
+              Register to Vote
+            </button>
+            <span className="vote-user-email">Registered: {currentUser.email}</span>
+            <button 
+              onClick={handleLogout} 
+              className="vote-signout-button"
+            >
+              Sign Out
+            </button>
+          </div>
+        )}
         
         {hasVoted ? (
           <div className="vote-status voted">

@@ -1,9 +1,9 @@
-import { useMemo, memo } from 'react';
+import { useMemo } from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
 
 const COLORS = ['#8884d8', '#82ca9d', '#ffc658', '#ff7300', '#00ff00', '#ff00ff'];
 
-function SalesDistribution({ data }) {
+export default function SalesDistribution({ data }) {
     const chartData = useMemo(() => {
         let totalRetail = 0;
         let totalWarehouse = 0;
@@ -48,6 +48,4 @@ function SalesDistribution({ data }) {
         </div>
     );
 }
-
-export default memo(SalesDistribution);
 

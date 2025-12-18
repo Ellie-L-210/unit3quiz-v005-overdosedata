@@ -1,7 +1,7 @@
-import { useMemo, memo } from 'react';
+import { useMemo } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
-function SalesByItemType({ data }) {
+export default function SalesByItemType({ data }) {
     const chartData = useMemo(() => {
         const typeData = {};
 
@@ -50,6 +50,4 @@ function SalesByItemType({ data }) {
         </div>
     );
 }
-
-export default memo(SalesByItemType);
 

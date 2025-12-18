@@ -33,9 +33,20 @@ export const AuthProvider = ({ children }) => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setCurrentUser(user)
       setLoading(false)
+    }, (error) => {
+      console.error('Auth state change error:', error)
+      setLoading(false)
     })
 
-    return unsubscribe
+    // Fallback timeout to ensure loading is set to false
+    const timeout = setTimeout(() => {
+      setLoading(false)
+    }, 3000)
+
+    return () => {
+      unsubscribe()
+      clearTimeout(timeout)
+    }
   }, [])
 
   const value = {

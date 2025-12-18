@@ -10,7 +10,6 @@ export default function Poll({ showPoll = false, onClosePoll }) {
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
   const [selectedAnswer, setSelectedAnswer] = useState(null)
-  const [shouldShowPoll, setShouldShowPoll] = useState(false)
   const [justVoted, setJustVoted] = useState(false)
 
   // Silly and obscure question
@@ -18,19 +17,16 @@ export default function Poll({ showPoll = false, onClosePoll }) {
 
   useEffect(() => {
     const checkVotingStatus = async () => {
-      if (currentUser) {
+      // Only check voting status if poll should be shown (Vote button clicked) and user is signed in
+      if (showPoll && currentUser) {
+        // Reset voting state when poll is shown
+        setJustVoted(false)
+        setSelectedAnswer(null)
+        setError('')
         try {
-          // Check if user came from "Register to Vote" flow
-          const fromRegisterToVote = sessionStorage.getItem('fromRegisterToVote') === 'true'
-          
           // Check if user has already voted
           const voted = await hasUserVoted(currentUser.uid)
           setHasVoted(voted)
-          
-          // Show poll if:
-          // 1. User came from "Register to Vote" button AND hasn't voted, OR
-          // 2. Vote button was clicked (showPoll prop is true)
-          setShouldShowPoll((fromRegisterToVote && !voted) || showPoll)
         } catch (err) {
           console.error('Error checking voting status:', err)
         } finally {
@@ -38,36 +34,35 @@ export default function Poll({ showPoll = false, onClosePoll }) {
         }
       } else {
         setLoading(false)
-        // Show poll if Vote button was clicked (even if not logged in, they'll see it after login)
-        setShouldShowPoll(showPoll)
       }
     }
     checkVotingStatus()
   }, [currentUser, showPoll])
 
   const handleVote = async (answer) => {
-    if (!currentUser || submitting) return
+    if (!currentUser || submitting || justVoted) return
 
+    setSelectedAnswer(answer)
+    setJustVoted(true)
     setSubmitting(true)
     setError('')
-    setSelectedAnswer(answer)
 
+    // Submit vote in the background
     try {
       const result = await submitPollVote(currentUser.uid, currentUser.email, answer)
       if (result.success) {
         setHasVoted(true)
-        setShouldShowPoll(false)
-        setJustVoted(true)
-        // Clear the flag after voting
-        sessionStorage.removeItem('fromRegisterToVote')
-        // Close poll if opened via Vote button
+        // Close poll after voting
         if (onClosePoll) {
           setTimeout(() => onClosePoll(), 0)
         }
       } else {
+        // If submission fails, show error but keep thank you message
         setError(result.message)
+        console.error('Vote submission failed:', result.message)
       }
     } catch (err) {
+      // If submission fails, show error but keep thank you message
       setError('Failed to submit vote. Please try again.')
       console.error('Error submitting vote:', err)
     } finally {
@@ -75,12 +70,15 @@ export default function Poll({ showPoll = false, onClosePoll }) {
     }
   }
 
-  if (loading) {
+  // Only show poll if Vote button was clicked (showPoll is true) AND user is signed in
+  if (!showPoll || !currentUser) {
     return null
   }
 
-  // Check if user came from "Register to Vote" flow
-  const fromRegisterToVote = sessionStorage.getItem('fromRegisterToVote') === 'true'
+  // Show loading state while checking vote status
+  if (loading) {
+    return null
+  }
 
   // If user just voted, show thank you message
   if (justVoted) {
@@ -105,8 +103,8 @@ export default function Poll({ showPoll = false, onClosePoll }) {
     )
   }
 
-  // If user has already voted and poll is shown via Vote button, show thank you message
-  if (showPoll && currentUser && hasVoted && !justVoted) {
+  // If user has already voted, show thank you message (check this BEFORE showing poll question)
+  if (hasVoted) {
     return (
       <div className="poll-overlay">
         <div className="poll-container">
@@ -127,40 +125,6 @@ export default function Poll({ showPoll = false, onClosePoll }) {
     )
   }
 
-  // If user came from "Register to Vote", is logged in, and has already voted (but didn't just vote), show thank you message
-  if (fromRegisterToVote && currentUser && hasVoted && !justVoted && !showPoll) {
-    return (
-      <div className="poll-overlay">
-        <div className="poll-container">
-          <div className="poll-card poll-thank-you">
-            <h2 className="poll-title">🦆 Thank you for voting!</h2>
-            <p className="poll-thank-you-message">Your vote has been recorded.</p>
-            <button 
-              onClick={() => {
-                sessionStorage.removeItem('fromRegisterToVote')
-              }}
-              className="poll-close-button"
-            >
-              Close
-            </button>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
-  // Show poll if:
-  // 1. User came from "Register to Vote" and hasn't voted, OR
-  // 2. Vote button was clicked (showPoll is true) and user hasn't voted
-  if (!shouldShowPoll || (hasVoted && !showPoll)) {
-    return null
-  }
-
-  // If user is not logged in and Vote button was clicked, don't show poll yet
-  if (showPoll && !currentUser) {
-    return null
-  }
-
   return (
     <div className="poll-overlay">
       <div className="poll-container">
@@ -173,17 +137,17 @@ export default function Poll({ showPoll = false, onClosePoll }) {
           <div className="poll-buttons">
             <button
               onClick={() => handleVote('yes')}
-              disabled={submitting}
+              disabled={submitting || justVoted}
               className={`poll-button poll-button-yes ${selectedAnswer === 'yes' ? 'selected' : ''}`}
             >
-              {submitting && selectedAnswer === 'yes' ? 'Submitting...' : 'Yes'}
+              Yes
             </button>
             <button
               onClick={() => handleVote('no')}
-              disabled={submitting}
+              disabled={submitting || justVoted}
               className={`poll-button poll-button-no ${selectedAnswer === 'no' ? 'selected' : ''}`}
             >
-              {submitting && selectedAnswer === 'no' ? 'Submitting...' : 'No'}
+              No
             </button>
           </div>
           

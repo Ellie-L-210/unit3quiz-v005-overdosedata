@@ -1,7 +1,7 @@
-import { useMemo, memo } from 'react';
+import { useMemo } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
-function YearlyComparison({ data }) {
+export default function YearlyComparison({ data }) {
     const chartData = useMemo(() => {
         const yearlyData = {};
 
@@ -43,6 +43,4 @@ function YearlyComparison({ data }) {
         </div>
     );
 }
-
-export default memo(YearlyComparison);
 

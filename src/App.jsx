@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect } from 'react'
 import './App.css'
 import { useAuth } from './contexts/AuthContext'
 import { loadCSVData } from './utils/dataLoader'
@@ -11,6 +11,7 @@ import YearlyComparison from './components/YearlyComparison'
 import MonthlyTrends from './components/MonthlyTrends'
 import SalesDistribution from './components/SalesDistribution'
 import CategoryMonthlyView from './components/CategoryMonthlyView'
+import VoteButton from './components/VoteButton'
 
 function App() {
   const { currentUser, logout } = useAuth()
@@ -74,8 +75,6 @@ function App() {
   }
 
   const handleRegisterClick = () => {
-    // Set flag to track that user clicked "Register to Vote"
-    sessionStorage.setItem('fromRegisterToVote', 'true')
     setAuthMode('register')
   }
 
@@ -84,10 +83,6 @@ function App() {
   }
 
   const handleCloseModal = () => {
-    // Clear flag if user closes modal without registering
-    if (authMode === 'register') {
-      sessionStorage.removeItem('fromRegisterToVote')
-    }
     setAuthMode(null)
   }
 
@@ -95,22 +90,11 @@ function App() {
     if (!currentUser) {
       // If not logged in, show register modal
       setAuthMode('register')
-      sessionStorage.setItem('fromRegisterToVote', 'true')
-      // After they register and log in, the poll will show automatically
     } else {
       // If logged in, show the poll
       setShowPoll(true)
     }
   }
-
-  // Memoize expensive calculations
-  const totalRetailSales = useMemo(() =>
-    data.reduce((sum, row) => sum + (row['RETAIL SALES'] || 0), 0).toLocaleString('en-US', { maximumFractionDigits: 2 })
-    , [data])
-
-  const totalWarehouseSales = useMemo(() =>
-    data.reduce((sum, row) => sum + (row['WAREHOUSE SALES'] || 0), 0).toLocaleString('en-US', { maximumFractionDigits: 2 })
-    , [data])
 
   return (
     <>
@@ -129,18 +113,15 @@ function App() {
       )}
       {!currentUser && (
         <div className="fixed-auth-buttons">
+          <button onClick={handleVoteClick} className="vote-button">
+            Register to Vote
+          </button>
           <button onClick={handleSignInClick} className="register-vote-button">
             Sign In
           </button>
           <button onClick={handleRegisterClick} className="register-vote-button">
             Register to Vote
           </button>
-        </div>
-      )}
-      {currentUser && (
-        <div className="fixed-user-info">
-          <span className="user-email">Registered: {currentUser.email}</span>
-          <button onClick={handleLogout} className="logout-button">Sign Out</button>
         </div>
       )}
       <Poll showPoll={showPoll} onClosePoll={() => setShowPoll(false)} />
@@ -166,22 +147,21 @@ function App() {
             </div>
             <div className="stat-item">
               <span className="stat-label">Total Retail Sales:</span>
-              <span className="stat-value">${totalRetailSales}</span>
+              <span className="stat-value">
+                ${data.reduce((sum, row) => sum + (row['RETAIL SALES'] || 0), 0).toLocaleString('en-US', { maximumFractionDigits: 2 })}
+              </span>
             </div>
             <div className="stat-item">
               <span className="stat-label">Total Warehouse Sales:</span>
-              <span className="stat-value">${totalWarehouseSales}</span>
+              <span className="stat-value">
+                ${data.reduce((sum, row) => sum + (row['WAREHOUSE SALES'] || 0), 0).toLocaleString('en-US', { maximumFractionDigits: 2 })}
+              </span>
             </div>
           </div>
         </header>
 
-        <div className="vote-button-container">
-          <button onClick={handleVoteClick} className="vote-button vote-button-large">
-            Vote
-          </button>
-        </div>
-
         <section className="statement-section">
+          <VoteButton onVoteClick={handleVoteClick} />
           <h2 className="statement-title">Statement of Intent</h2>
           <div className="statement-content">
             <p className="candidate-name">— The Honorable Senator Reginald P. Bottleworth III, Esq.</p>
