@@ -47,6 +47,13 @@ function App() {
     }
   }, [currentUser, authMode])
 
+  // Ensure poll is closed when user logs out
+  useEffect(() => {
+    if (!currentUser) {
+      setShowPoll(false)
+    }
+  }, [currentUser])
+
   if (loading) {
     return (
       <div className="loading-container">
@@ -68,6 +75,8 @@ function App() {
 
   const handleLogout = async () => {
     try {
+      // Close poll when user logs out
+      setShowPoll(false)
       await logout()
     } catch (err) {
       console.error('Failed to logout:', err)
@@ -90,8 +99,11 @@ function App() {
     if (!currentUser) {
       // If not logged in, show register modal
       setAuthMode('register')
+      // Ensure poll is closed
+      setShowPoll(false)
     } else {
-      // If logged in, show the poll
+      // ONLY show the poll when Vote button is explicitly clicked
+      // This is the ONLY place where setShowPoll(true) should be called
       setShowPoll(true)
     }
   }
@@ -109,19 +121,6 @@ function App() {
               <Login onToggleMode={() => setAuthMode('register')} />
             )}
           </div>
-        </div>
-      )}
-      {!currentUser && (
-        <div className="fixed-auth-buttons">
-          <button onClick={handleVoteClick} className="vote-button">
-            Register to Vote
-          </button>
-          <button onClick={handleSignInClick} className="register-vote-button">
-            Sign In
-          </button>
-          <button onClick={handleRegisterClick} className="register-vote-button">
-            Register to Vote
-          </button>
         </div>
       )}
       <Poll showPoll={showPoll} onClosePoll={() => setShowPoll(false)} />
@@ -161,7 +160,11 @@ function App() {
         </header>
 
         <section className="statement-section">
-          <VoteButton onVoteClick={handleVoteClick} />
+          <VoteButton 
+          onVoteClick={handleVoteClick} 
+          onRegisterClick={handleRegisterClick}
+          onSignInClick={handleSignInClick}
+        />
           <h2 className="statement-title">Statement of Intent</h2>
           <div className="statement-content">
             <p className="candidate-name">— The Honorable Senator Reginald P. Bottleworth III, Esq.</p>

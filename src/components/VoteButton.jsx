@@ -1,87 +1,25 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../contexts/AuthContext'
-import { hasUserVoted, submitVote, getVoteCount } from '../utils/votingService'
+import { subscribeToVoteTallies } from '../utils/votingService'
 import './VoteButton.css'
 
-export default function VoteButton({ onVoteClick }) {
+export default function VoteButton({ onVoteClick, onRegisterClick, onSignInClick }) {
   const { currentUser, logout } = useAuth()
-  const [hasVoted, setHasVoted] = useState(false)
-  const [isChecking, setIsChecking] = useState(true)
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [message, setMessage] = useState('')
-  const [voteCount, setVoteCount] = useState(0)
+  const [voteTallies, setVoteTallies] = useState({ yes: 0, no: 0, total: 0 })
 
   useEffect(() => {
-    const checkVoteStatus = async () => {
-      if (currentUser) {
-        setIsChecking(true)
-        try {
-          const voted = await hasUserVoted(currentUser.uid)
-          setHasVoted(voted)
-          
-          // Get total vote count
-          const count = await getVoteCount()
-          setVoteCount(count)
-        } catch (error) {
-          console.error('Error checking vote status:', error)
-        } finally {
-          setIsChecking(false)
-        }
-      } else {
-        setIsChecking(false)
+    // Subscribe to real-time vote tallies
+    const unsubscribe = subscribeToVoteTallies((tallies) => {
+      setVoteTallies(tallies)
+    })
+
+    // Cleanup subscription on unmount
+    return () => {
+      if (unsubscribe) {
+        unsubscribe()
       }
     }
-
-    checkVoteStatus()
-  }, [currentUser])
-
-  const handleVote = async () => {
-    if (!currentUser) {
-      setMessage('Please register or sign in to vote.')
-      return
-    }
-
-    if (hasVoted) {
-      setMessage('You have already voted. Each registered user can only vote once.')
-      return
-    }
-
-    setIsSubmitting(true)
-    setMessage('')
-
-    try {
-      const result = await submitVote(currentUser.uid, currentUser.email)
-      setMessage(result.message)
-      
-      if (result.success) {
-        setHasVoted(true)
-        // Refresh vote count
-        const count = await getVoteCount()
-        setVoteCount(count)
-      }
-    } catch (error) {
-      setMessage('An error occurred. Please try again.')
-      console.error('Error voting:', error)
-    } finally {
-      setIsSubmitting(false)
-    }
-  }
-
-  if (!currentUser) {
-    return (
-      <div className="vote-section">
-        <p className="vote-message">Please register or sign in to cast your vote.</p>
-      </div>
-    )
-  }
-
-  if (isChecking) {
-    return (
-      <div className="vote-section">
-        <div className="vote-loading">Checking vote status...</div>
-      </div>
-    )
-  }
+  }, [])
 
   const handleLogout = async () => {
     try {
@@ -95,54 +33,77 @@ export default function VoteButton({ onVoteClick }) {
     <div className="vote-section">
       <div className="vote-container">
         <h3 className="vote-title">Cast Your Vote</h3>
-        <p className="vote-subtitle">Support Senator Reginald P. Bottleworth III</p>
-        
-        {currentUser && (
+
+        {currentUser ? (
           <div className="vote-user-info">
-            <button 
-              onClick={onVoteClick} 
+            <button
+              onClick={onVoteClick}
               className="vote-register-button"
             >
-              Register to Vote
+              Vote
             </button>
             <span className="vote-user-email">Registered: {currentUser.email}</span>
-            <button 
-              onClick={handleLogout} 
+            <button
+              onClick={handleLogout}
               className="vote-signout-button"
             >
               Sign Out
             </button>
           </div>
-        )}
-        
-        {hasVoted ? (
-          <div className="vote-status voted">
-            <div className="vote-icon">✓</div>
-            <p className="vote-status-text">Thank you for voting!</p>
-            <p className="vote-status-subtext">You have successfully cast your vote.</p>
-          </div>
         ) : (
-          <button
-            onClick={handleVote}
-            disabled={isSubmitting || hasVoted}
-            className="vote-button"
-          >
-            {isSubmitting ? 'Submitting Vote...' : 'Vote Now'}
-          </button>
-        )}
-
-        {message && (
-          <div className={`vote-message ${hasVoted ? 'success' : message.includes('already') ? 'error' : ''}`}>
-            {message}
+          <div className="vote-user-info">
+            <button
+              onClick={onRegisterClick}
+              className="vote-register-button"
+            >
+              Register to Vote
+            </button>
+            <button
+              onClick={onSignInClick}
+              className="vote-signin-button"
+            >
+              Sign In
+            </button>
           </div>
         )}
 
-        <div className="vote-count">
-          <span className="vote-count-label">Total Votes:</span>
-          <span className="vote-count-value">{voteCount}</span>
+        {!currentUser && (
+          <p className="vote-message">Please register or sign in to cast your vote.</p>
+        )}
+
+        <div className="vote-tally">
+          <h4 className="vote-tally-title">Live Vote Tally</h4>
+          <div className="vote-tally-stats">
+            <div className="vote-tally-item">
+              <span className="vote-tally-label">Yes:</span>
+              <span className="vote-tally-value vote-tally-yes">{voteTallies.yes}</span>
+            </div>
+            <div className="vote-tally-item">
+              <span className="vote-tally-label">No:</span>
+              <span className="vote-tally-value vote-tally-no">{voteTallies.no}</span>
+            </div>
+            <div className="vote-tally-item vote-tally-total">
+              <span className="vote-tally-label">Total Votes:</span>
+              <span className="vote-tally-value">{voteTallies.total}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      {/* Vote Counter below Cast Your Vote */}
+      <div className="vote-counter-section">
+        <div className="vote-counter-container">
+          <div className="vote-counter-display">
+            <span className="vote-counter-label">Total Votes:</span>
+            <span className="vote-counter-number">{voteTallies.total}</span>
+          </div>
+          <div className="vote-counter-breakdown">
+            <span className="vote-counter-yes">Yes: {voteTallies.yes}</span>
+            <span className="vote-counter-separator">•</span>
+            <span className="vote-counter-no">No: {voteTallies.no}</span>
+          </div>
         </div>
       </div>
     </div>
   )
 }
-
